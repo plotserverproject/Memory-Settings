@@ -9,7 +9,7 @@ public class PreLaunchCheck {
         long allocatedMB = Runtime.getRuntime().maxMemory() / (1024 * 1024);
 
         if (allocatedMB < minRam){
-            ArdaSettings.LOGGER.info("RAM allocated is not sufficient to run Ardacraft.");
+            ArdaSettings.LOGGER.info("RAM allocated is not sufficient to run this modpack.");
             PanelDialog.showAllocatedRamDialog();
         }
     }

@@ -61,7 +61,7 @@ public class PanelDialog {
         messagePanel.add(Box.createVerticalStrut(5));
 
         JLabel text = new JLabel("<html><body style='font-size:11px;'>You have less then <b> 8192 MB</b> of memory allocated.<br>"
-                + "ArdaCraft <b>needs</b> at least <b>8192 MB</b> to function properly!</body></html>");
+                + "This modpack <b>needs</b> at least <b>8192 MB</b> to function properly!</body></html>");
         messagePanel.add(text);
 
         JLabel link = new JLabel("<html><a style='font-size:11px;' href=''>View the guide on how to increase allocated memory here.</a></html>");
