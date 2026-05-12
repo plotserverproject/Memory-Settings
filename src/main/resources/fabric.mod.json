@@ -1,32 +1,29 @@
 {
 	"schemaVersion": 1,
-	"id": "ardasettings",
+	"id": "modpacksettings",
 	"version": "${version}",
 	"name": "ArdaSettings",
-	"description": "A basic mod that checks the allocated Ram for the Ardacraft Modpack",
+	"description": "A basic mod that checks the allocated RAM for the Wildeprojekt Modpack",
 	"authors": [
 		"Speklapje300"
 	],
 	"contact": {
 		"homepage": "https://ardacraft.me/"
 	},
-	"license": "All Rights Reserved",
-	"icon": "assets/ardasettings/icon.png",
+	"license": "CC0 1.0 Universal",
+	"icon": "assets/modpacksettings/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"mc.ardacraft.ardasettings.ArdaSettings"
+			"to.wildeprojekt.modpacksettings.ModpackSettings"
 		],
         "preLaunch": [
-            "mc.ardacraft.ardasettings.ArdaSettingsPrelaunch"
+            "to.wildeprojekt.modpacksettings.ModpackSettingsPrelaunch"
         ],
       "client": [
-        "mc.ardacraft.ardasettings.client.ArdaSettingsClient"
+        "to.wildeprojekt.modpacksettings.client.ModpackSettingsClient"
       ]
     },
-	"mixins": [
-		"ardasettings.mixins.json"
-	],
 	"depends": {
 		"fabricloader": ">=0.17.3",
 		"minecraft": "~1.20.1",
