@@ -1,4 +1,4 @@
-package to.wildeprojekt.modpacksettings;
+package org.wildeprojekt.modpacksettings;
 
 import net.fabricmc.api.ModInitializer;
 

@@ -1,4 +1,4 @@
-package to.wildeprojekt.modpacksettings.client;
+package org.wildeprojekt.modpacksettings.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;

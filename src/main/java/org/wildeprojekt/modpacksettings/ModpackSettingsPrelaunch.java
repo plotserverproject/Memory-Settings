@@ -1,6 +1,6 @@
-package to.wildeprojekt.modpacksettings;
+package org.wildeprojekt.modpacksettings;
 
-import to.wildeprojekt.modpacksettings.client.PreLaunchCheck;
+import org.wildeprojekt.modpacksettings.client.PreLaunchCheck;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 
 public class ModpackSettingsPrelaunch implements PreLaunchEntrypoint {

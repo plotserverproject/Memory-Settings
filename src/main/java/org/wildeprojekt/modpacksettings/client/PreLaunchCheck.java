@@ -1,6 +1,6 @@
-package to.wildeprojekt.modpacksettings.client;
+package org.wildeprojekt.modpacksettings.client;
 
-import to.wildeprojekt.modpacksettings.ModpackSettings;
+import org.wildeprojekt.modpacksettings.ModpackSettings;
 
 public class PreLaunchCheck {
     public static void checkAllocatedRam(){

@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "modpacksettings",
 	"version": "${version}",
-	"name": "ArdaSettings",
+	"name": "ModpackSettings",
 	"description": "A basic mod that checks the allocated RAM for the Wildeprojekt Modpack",
 	"authors": [
 		"Speklapje300"
@@ -15,13 +15,13 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"to.wildeprojekt.modpacksettings.ModpackSettings"
+			"org.wildeprojekt.modpacksettings.ModpackSettings"
 		],
         "preLaunch": [
-            "to.wildeprojekt.modpacksettings.ModpackSettingsPrelaunch"
+            "org.wildeprojekt.modpacksettings.ModpackSettingsPrelaunch"
         ],
       "client": [
-        "to.wildeprojekt.modpacksettings.client.ModpackSettingsClient"
+        "org.wildeprojekt.modpacksettings.client.ModpackSettingsClient"
       ]
     },
 	"depends": {

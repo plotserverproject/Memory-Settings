@@ -1,4 +1,4 @@
-package to.wildeprojekt.modpacksettings.client;
+package org.wildeprojekt.modpacksettings.client;
 
 import javax.swing.*;
 import java.awt.*;
