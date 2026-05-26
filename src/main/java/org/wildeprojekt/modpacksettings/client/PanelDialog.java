@@ -36,7 +36,7 @@ public class PanelDialog {
         panel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
 
-        URL url = PanelDialog.class.getResource("/assets/ardasettings/icon.png");
+        URL url = PanelDialog.class.getResource("/assets/modpacksettings/icon.png");
         ImageIcon icon = null;
 
         if (url != null){
