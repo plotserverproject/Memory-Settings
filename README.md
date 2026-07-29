@@ -9,7 +9,7 @@ and run before MC Initialization and performs the following verifications:
 
 1. **Checks the allocated RAM** before the game starts and warns the player if the launcher gave the JVM less than 8Gb
    of ram.
-2. **Keeps the WildeProject Overlay RP up to date** by downloading the latest release asset from
+2. **Keeps the Wildeprojekt Overlay RP up to date** by downloading the latest release asset from
    the [GitHub repository](https://github.com/wildeprojekt/Wildeprojekt-Overlay) and enabling it ingame.
 
 Both checks run in Fabric's `preLaunch` phase, before Minecraft has loaded. The RAM warning can still be acted
