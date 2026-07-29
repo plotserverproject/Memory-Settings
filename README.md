@@ -4,7 +4,7 @@
 ![Fabric](https://img.shields.io/badge/Fabric-loader-dbb66e?style=flat-square)
 [![License: CC 1.0](https://img.shields.io/badge/license-CC0%201.0-green.svg?style=flat-square)](LICENSE)
 
-WildeProjekt Modpack Settings is a client-side [Fabric](https://fabricmc.net/) mod for Minecraft **1.20.1**. This loads
+Wildeprojekt Modpack Settings is a client-side [Fabric](https://fabricmc.net/) mod for Minecraft **1.20.1**. This loads
 and run before MC Initialization and performs the following verifications:
 
 1. **Checks the allocated RAM** before the game starts and warns the player if the launcher gave the JVM less than 8Gb

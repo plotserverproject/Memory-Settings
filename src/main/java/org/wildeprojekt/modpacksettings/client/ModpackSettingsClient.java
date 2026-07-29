@@ -14,6 +14,6 @@ public class ModpackSettingsClient implements ClientModInitializer {
      */
     @Override
     public void onInitializeClient() {
-        LOGGER.info("WildeProjekt Modpack settings initialized.");
+        LOGGER.info("Wildeprojekt Modpack settings initialized.");
     }
 }
