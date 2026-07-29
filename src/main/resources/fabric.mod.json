@@ -12,17 +12,14 @@
 	},
 	"license": "CC0 1.0 Universal",
 	"icon": "assets/modpacksettings/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"org.wildeprojekt.modpacksettings.ModpackSettings"
+		"client": [
+			"org.wildeprojekt.modpacksettings.client.ModpackSettingsClient"
 		],
         "preLaunch": [
             "org.wildeprojekt.modpacksettings.ModpackSettingsPrelaunch"
-        ],
-      "client": [
-        "org.wildeprojekt.modpacksettings.client.ModpackSettingsClient"
-      ]
+        ]
     },
 	"depends": {
 		"fabricloader": ">=0.17.3",

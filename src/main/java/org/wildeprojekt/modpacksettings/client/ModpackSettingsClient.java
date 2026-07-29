@@ -1,19 +1,19 @@
 package org.wildeprojekt.modpacksettings.client;
 
+import lombok.extern.slf4j.Slf4j;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 
-import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-
+/**
+ * Client-side Fabric entrypoint for Modpack Settings.
+ */
+@Slf4j
 public class ModpackSettingsClient implements ClientModInitializer {
+
+    /**
+     * Initializes client-only Modpack Settings behaviour after Minecraft starts loading.
+     */
     @Override
     public void onInitializeClient() {
-//        if (System.getProperty("os.name").toLowerCase().contains("mac")){
-//            ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-//                PreLaunchCheck.checkAllocatedRam();
-//
-//            });
-//        }
+        LOGGER.info("WildeProjekt Modpack settings initialized.");
     }
 }
