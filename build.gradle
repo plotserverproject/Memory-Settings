@@ -26,6 +26,14 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// Lombok - Compile only
+	compileOnly("org.projectlombok:lombok:${project.lombok_version}")
+	annotationProcessor("org.projectlombok:lombok:${project.lombok_version}")
+
+	// Lombok - Tests
+	testCompileOnly("org.projectlombok:lombok:${project.lombok_version}")
+	testAnnotationProcessor("org.projectlombok:lombok:${project.lombok_version}")
 	
 }
 
