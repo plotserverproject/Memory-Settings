@@ -9,11 +9,12 @@ and run before MC Initialization and performs the following verifications:
 
 1. **Checks the allocated RAM** before the game starts and warns the player if the launcher gave the JVM less than 8Gb
    of ram.
-2. **Keeps the Wildeprojekt Overlay RP up to date** by downloading the latest release asset from
-   the [GitHub repository](https://github.com/wildeprojekt/Wildeprojekt-Overlay) and enabling it ingame.
+2. **Keeps configured resource packs up to date** by downloading the latest release assets from
+   their GitHub repositories (by default the [Wildeprojekt Overlay](https://github.com/wildeprojekt/Wildeprojekt-Overlay))
+   and enabling them ingame.
 
 Both checks run in Fabric's `preLaunch` phase, before Minecraft has loaded. The RAM warning can still be acted
-on and the resource pack is already in place by the time the game reads its options. The mod is
+on and the resource packs are already in place by the time the game reads its options. The mod is
 `"environment": "client"`.
 
 If run on a server, the mod stays silent - no verification is made.
@@ -35,25 +36,30 @@ and recreates it from defaults rather than failing the launch.
 
 ```json
 {
-  "resourcePack": {
-    "enabled": true,
-    "repository": "wildeprojekt/Wildeprojekt-Overlay",
-    "assetName": "Wildeprojekt_Overlay.zip",
-    "targetFileName": "Wildeprojekt_Overlay.zip",
-    "autoEnable": true,
-    "force_load_incompatible": false,
-    "lastPublishedAt": null,
-    "lastActivatedFileName": null
-  }
+  "resourcePacks": [
+    {
+      "enabled": true,
+      "repository": "wildeprojekt/Wildeprojekt-Overlay",
+      "assetName": "Wildeprojekt_Overlay.zip",
+      "targetFileName": "Wildeprojekt_Overlay.zip",
+      "autoEnable": true,
+      "force_load_incompatible": false,
+      "lastPublishedAt": null,
+      "lastActivatedFileName": null
+    }
+  ]
 }
 ```
 
-### Fields
+Add more objects to the `resourcePacks` array to download and enable multiple packs. Array order is the
+activation order. Packs that share a `repository` reuse one GitHub latest-release API call.
+
+### Fields (per entry)
 
 | Key                       | Type          | Default                               | Meaning                                                                                                                  |
 |---------------------------|---------------|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| `enabled`                 | boolean       | `true`                                | Master switch for the resource pack updater. When `false`, nothing is downloaded or enabled.                             |
-| `repository`              | string        | `"wildeprojekt/Wildeprojekt-Overlay"` | GitHub repository in `owner/repo` form to pull releases from. Blank disables the updater.                                |
+| `enabled`                 | boolean       | `true`                                | Switch for this pack entry. When `false`, this pack is neither downloaded nor enabled.                                  |
+| `repository`              | string        | `"wildeprojekt/Wildeprojekt-Overlay"` | GitHub repository in `owner/repo` form to pull releases from. Blank skips this entry.                                    |
 | `assetName`               | string        | `"Wildeprojekt_Overlay.zip"`          | Name of the release asset to download, exactly as it appears on the GitHub release.                                      |
 | `targetFileName`          | string        | `"Wildeprojekt_Overlay.zip"`          | Filename written into `resourcepacks/`. Also the name used in `options.txt`.                                             |
 | `autoEnable`              | boolean       | `true`                                | Add the pack to the game's enabled resource packs automatically.                                                         |
@@ -62,8 +68,8 @@ and recreates it from defaults rather than failing the launch.
 | `lastActivatedFileName`   | string / null | `null`                                | **Written by the mod.** Last pack filename added to `options.txt`.                                                       |
 | `activationVersion`       | int           | `0`                                   | **Written by the mod.** Migration marker used to backfill activation for existing installs. Leave it alone.              |
 
-The last three are managed state - edit `lastPublishedAt` to `null` (or delete the file) if you want to force a fresh
-download on the next launch.
+The last three are managed state per pack - edit `lastPublishedAt` to `null` (or delete the local zip) if you want to
+force a fresh download on the next launch.
 
 ---
 

@@ -1,12 +1,14 @@
 {
-  "resourcePack": {
-    "enabled": true,
-    "repository": "wildeprojekt/Wildeprojekt-Overlay",
-    "assetName": "Wildeprojekt_Overlay.zip",
-    "targetFileName": "Wildeprojekt_Overlay.zip",
-    "autoEnable": true,
-    "force_load_incompatible": false,
-    "lastPublishedAt": null,
-    "lastActivatedFileName": null
-  }
+  "resourcePacks": [
+    {
+      "enabled": true,
+      "repository": "wildeprojekt/Wildeprojekt-Overlay",
+      "assetName": "Wildeprojekt_Overlay.zip",
+      "targetFileName": "Wildeprojekt_Overlay.zip",
+      "autoEnable": true,
+      "force_load_incompatible": false,
+      "lastPublishedAt": null,
+      "lastActivatedFileName": null
+    }
+  ]
 }

@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Loads and saves the Modpack Settings configuration file.
@@ -29,8 +31,8 @@ public class ModConfig {
     /** Gson instance used for all config serialization. */
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    /** Resource pack updater settings. */
-    private ResourcePackConfig resourcePack = new ResourcePackConfig();
+    /** Resource pack updater settings (one entry per pack). */
+    private List<ResourcePackConfig> resourcePacks = new ArrayList<>();
 
     /**
      * Loads the current config, creating or repairing it from defaults when needed.
@@ -115,27 +117,67 @@ public class ModConfig {
         ModConfig defaults = defaultConfig();
         ModConfig merged = loaded == null ? defaults : loaded;
 
-        if (merged.getResourcePack() == null) {
-            merged.setResourcePack(defaults.getResourcePack());
+        if (merged.getResourcePacks() == null || merged.getResourcePacks().isEmpty()) {
+            merged.setResourcePacks(copyResourcePackList(defaults.getResourcePacks()));
             return merged;
         }
 
-        ResourcePackConfig resourcePack = merged.getResourcePack();
-        ResourcePackConfig defaultResourcePack = defaults.getResourcePack();
+        ResourcePackConfig fieldDefaults = fieldDefaults(defaults);
 
-        if (resourcePack.getRepository() == null)
-            resourcePack.setRepository(defaultResourcePack.getRepository());
+        for (ResourcePackConfig resourcePack : merged.getResourcePacks()) {
+            if (resourcePack == null)
+                continue;
 
-        if (resourcePack.getAssetName() == null)
-            resourcePack.setAssetName(defaultResourcePack.getAssetName());
+            if (resourcePack.getRepository() == null)
+                resourcePack.setRepository(fieldDefaults.getRepository());
 
-        if (resourcePack.getTargetFileName() == null)
-            resourcePack.setTargetFileName(defaultResourcePack.getTargetFileName());
+            if (resourcePack.getAssetName() == null)
+                resourcePack.setAssetName(fieldDefaults.getAssetName());
 
-        if (resourcePack.getLastActivatedFileName() == null)
-            resourcePack.setLastActivatedFileName(defaultResourcePack.getLastActivatedFileName());
+            if (resourcePack.getTargetFileName() == null)
+                resourcePack.setTargetFileName(fieldDefaults.getTargetFileName());
+
+            if (resourcePack.getLastActivatedFileName() == null)
+                resourcePack.setLastActivatedFileName(fieldDefaults.getLastActivatedFileName());
+        }
 
         return merged;
+    }
+
+    /**
+     * Returns a template used to fill null fields on individual pack entries.
+     *
+     * @param defaults bundled default config
+     * @return first bundled pack entry, or code-level field defaults
+     */
+    private static ResourcePackConfig fieldDefaults(ModConfig defaults) {
+
+        if (defaults.getResourcePacks() != null && !defaults.getResourcePacks().isEmpty()
+                && defaults.getResourcePacks().get(0) != null)
+            return defaults.getResourcePacks().get(0);
+
+        return new ResourcePackConfig();
+    }
+
+    /**
+     * Deep-copies a resource pack list for use as a default replacement.
+     *
+     * @param source list to copy
+     * @return independent copy, never null
+     */
+    private static List<ResourcePackConfig> copyResourcePackList(List<ResourcePackConfig> source) {
+
+        List<ResourcePackConfig> copy = new ArrayList<>();
+        if (source == null)
+            return copy;
+
+        for (ResourcePackConfig entry : source) {
+            if (entry == null)
+                continue;
+            copy.add(GSON.fromJson(GSON.toJson(entry), ResourcePackConfig.class));
+        }
+
+        return copy;
     }
 
     /**
@@ -178,7 +220,7 @@ public class ModConfig {
     }
 
     /**
-     * Configures the prelaunch resource pack downloader.
+     * Configures the prelaunch resource pack downloader for a single pack entry.
      *
      * <p>These field initializers are the code-level fallback for values missing
      * from {@code src/main/resources/config.json}; keep them aligned with that
@@ -189,7 +231,7 @@ public class ModConfig {
     @Setter
     public static class ResourcePackConfig {
 
-        /** Whether the resource pack updater should run at prelaunch. */
+        /** Whether the resource pack updater should run at prelaunch for this pack. */
         private boolean enabled = true;
 
         /** GitHub repository in owner/repo format. */

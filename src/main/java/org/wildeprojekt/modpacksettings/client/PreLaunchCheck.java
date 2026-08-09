@@ -26,7 +26,7 @@ public class PreLaunchCheck {
     }
 
     /**
-     * Checks whether the configured resource pack should be updated before launch.
+     * Checks whether the configured resource packs should be updated before launch.
      */
     public static void checkResourcePack() {
 
@@ -36,7 +36,7 @@ public class PreLaunchCheck {
 
         } catch (Exception exception) {
 
-            LOGGER.warn("Resource pack update failed. Existing resource pack will be used.", exception);
+            LOGGER.warn("Resource pack update failed. Existing resource pack(s) will be used.", exception);
             PanelDialog.showResourcePackFailureDialog(exception.getMessage());
         }
     }

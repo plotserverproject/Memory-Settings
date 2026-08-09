@@ -24,11 +24,15 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
- * Downloads the configured resource pack from the latest GitHub release before Minecraft starts.
+ * Downloads the configured resource packs from the latest GitHub releases before Minecraft starts.
  */
 @Slf4j
 public final class ResourcePackGrabber {
@@ -52,22 +56,21 @@ public final class ResourcePackGrabber {
     }
 
     /**
-     * Checks the configured GitHub repository and updates the local resource pack when needed.
+     * Checks each configured GitHub repository and updates local resource packs when needed.
      *
-     * @throws ResourcePackGrabberException if the updater fails after it has been configured
+     * <p>Failures for individual packs are collected; remaining packs still run. If any pack
+     * failed, a single {@link ResourcePackGrabberException} lists them after the loop.</p>
+     *
+     * @throws ResourcePackGrabberException if one or more configured packs failed to update
      */
     public static void run() throws ResourcePackGrabberException {
-        Path partPath = null;
 
         try {
             ModConfig config = ModConfig.load();
-            ModConfig.ResourcePackConfig resourcePack = config.getResourcePack();
-            if (!resourcePack.isEnabled()) {
-                LOGGER.info("Resource pack updater is disabled.");
-                return;
-            }
-            if (isBlank(resourcePack.getRepository())) {
-                LOGGER.info("Resource pack updater is not configured; skipping.");
+            List<ModConfig.ResourcePackConfig> resourcePacks = config.getResourcePacks();
+
+            if (resourcePacks == null || resourcePacks.isEmpty()) {
+                LOGGER.info("No resource packs configured; skipping.");
                 return;
             }
 
@@ -75,20 +78,89 @@ public final class ResourcePackGrabber {
                     .connectTimeout(CONNECT_TIMEOUT)
                     .followRedirects(HttpClient.Redirect.NORMAL)
                     .build();
-            JsonObject release = fetchLatestRelease(client, resourcePack.getRepository());
+
+            Map<String, JsonObject> releaseCache = new HashMap<>();
+            List<String> failures = new ArrayList<>();
+            boolean dirty = false;
+
+            for (ModConfig.ResourcePackConfig resourcePack : resourcePacks) {
+                if (resourcePack == null)
+                    continue;
+
+                if (!resourcePack.isEnabled()) {
+                    LOGGER.info("Resource pack updater is disabled for {}.", packLabel(resourcePack));
+                    continue;
+                }
+
+                if (isBlank(resourcePack.getRepository())) {
+                    LOGGER.info("Resource pack updater is not configured for {}; skipping.", packLabel(resourcePack));
+                    continue;
+                }
+
+                try {
+                    if (updateOne(client, releaseCache, resourcePack))
+                        dirty = true;
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    failures.add(formatFailure(resourcePack, exception.getMessage()));
+                    LOGGER.warn("Resource pack grabber interrupted for {}.", packLabel(resourcePack), exception);
+                    break;
+                } catch (Exception exception) {
+                    failures.add(formatFailure(resourcePack, exception.getMessage()));
+                    LOGGER.warn("Resource pack grabber failed for {}.", packLabel(resourcePack), exception);
+                }
+            }
+
+            if (dirty)
+                config.save();
+
+            if (!failures.isEmpty())
+                throw new ResourcePackGrabberException(String.join("\n", failures));
+
+        } catch (ResourcePackGrabberException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            if (exception instanceof InterruptedException)
+                Thread.currentThread().interrupt();
+            LOGGER.warn("Resource pack grabber failed.", exception);
+            throw new ResourcePackGrabberException(exception.getMessage(), exception);
+        }
+    }
+
+    /**
+     * Updates a single resource pack entry: fetch, download if needed, optionally activate.
+     *
+     * @param client       shared HTTP client
+     * @param releaseCache cache of latest-release JSON keyed by repository
+     * @param resourcePack pack entry to update
+     * @return true when config state for this pack changed and should be saved
+     * @throws IOException                  if I/O fails
+     * @throws InterruptedException         if an HTTP request is interrupted
+     * @throws ResourcePackGrabberException if the update fails
+     */
+    private static boolean updateOne(HttpClient client, Map<String, JsonObject> releaseCache,
+            ModConfig.ResourcePackConfig resourcePack)
+            throws IOException, InterruptedException, ResourcePackGrabberException {
+
+        Path partPath = null;
+        boolean dirty = false;
+
+        try {
+            JsonObject release = getLatestRelease(client, releaseCache, resourcePack.getRepository());
             Instant publishedAt = parsePublishedAt(release);
             String downloadUrl = findAssetDownloadUrl(release, resourcePack.getAssetName());
 
             Path resourcePacksDir = FabricLoader.getInstance().getGameDir().resolve("resourcepacks");
             Path targetPath = resourcePacksDir.resolve(resourcePack.getTargetFileName());
+
             if (!needsDownload(resourcePack.getLastPublishedAt(), publishedAt, targetPath)) {
                 LOGGER.info("Resource pack {} is up to date.", resourcePack.getTargetFileName());
                 if (shouldBackfillActivation(resourcePack) && activateResourcePack(resourcePack)) {
                     resourcePack.setLastActivatedFileName(resourcePack.getTargetFileName());
                     resourcePack.setActivationVersion(ACTIVATION_VERSION);
-                    config.save();
+                    dirty = true;
                 }
-                return;
+                return dirty;
             }
 
             Files.createDirectories(resourcePacksDir);
@@ -99,24 +171,65 @@ public final class ResourcePackGrabber {
             replaceTarget(partPath, targetPath);
 
             resourcePack.setLastPublishedAt(publishedAt.toString());
+            dirty = true;
+
             if (resourcePack.isAutoEnable() && activateResourcePack(resourcePack)) {
                 resourcePack.setLastActivatedFileName(resourcePack.getTargetFileName());
                 resourcePack.setActivationVersion(ACTIVATION_VERSION);
             }
-            config.save();
+
             LOGGER.info("Updated resource pack {} from release {}.", resourcePack.getTargetFileName(), publishedAt);
+            return dirty;
 
         } catch (Exception exception) {
             deletePart(partPath);
-            if (exception instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            LOGGER.warn("Resource pack grabber failed.", exception);
-            if (exception instanceof ResourcePackGrabberException grabberException) {
-                throw grabberException;
-            }
-            throw new ResourcePackGrabberException(exception.getMessage(), exception);
+            throw exception;
         }
+    }
+
+    /**
+     * Returns the latest release for a repository, reusing a cached response when available.
+     *
+     * @param client       shared HTTP client
+     * @param releaseCache cache of latest-release JSON keyed by repository
+     * @param repository   GitHub repository in owner/repo format
+     * @return latest release JSON object
+     * @throws IOException                  if the request fails
+     * @throws InterruptedException         if the request is interrupted
+     * @throws ResourcePackGrabberException if GitHub returns an error response
+     */
+    private static JsonObject getLatestRelease(HttpClient client, Map<String, JsonObject> releaseCache, String repository)
+            throws IOException, InterruptedException, ResourcePackGrabberException {
+
+        JsonObject cached = releaseCache.get(repository);
+        if (cached != null)
+            return cached;
+
+        JsonObject release = fetchLatestRelease(client, repository);
+        releaseCache.put(repository, release);
+        return release;
+    }
+
+    /**
+     * Builds a short label for logs and failure messages.
+     *
+     * @param resourcePack pack config
+     * @return target filename when set, otherwise a generic label
+     */
+    private static String packLabel(ModConfig.ResourcePackConfig resourcePack) {
+        return isBlank(resourcePack.getTargetFileName()) ? "(unnamed pack)" : resourcePack.getTargetFileName();
+    }
+
+    /**
+     * Formats a per-pack failure line for the aggregated exception message.
+     *
+     * @param resourcePack pack that failed
+     * @param message      failure detail
+     * @return formatted failure line
+     */
+    private static String formatFailure(ModConfig.ResourcePackConfig resourcePack, String message) {
+        String detail = isBlank(message) ? Messages.get("error_unknown") : message;
+        return packLabel(resourcePack) + ": " + detail;
     }
 
     /**
